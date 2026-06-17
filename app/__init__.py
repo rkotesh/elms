@@ -25,10 +25,6 @@ def create_app(config_class=Config):
     # Secret key from environment or default
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mysecretkey')
 
-    # SQLite database for local development
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///elms.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
@@ -54,6 +50,10 @@ def create_app(config_class=Config):
     @app.route("/")
     def index():
         return render_template("base.html")
+
+    if os.getenv("VERCEL") or os.getenv("AUTO_CREATE_DB", "").lower() in {"1", "true", "yes"}:
+        with app.app_context():
+            db.create_all()
 
     # CLI command to initialize the database
     @app.cli.command("init-db")

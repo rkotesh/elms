@@ -4,7 +4,6 @@ from ..models import User, LeaveRequest, AuditLog, db
 from .forms import CreateUserForm, EditUserForm, ReportForm, DeleteForm
 import pandas as pd
 from io import BytesIO
-from weasyprint import HTML
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -147,20 +146,12 @@ def generate_report():
         df.to_csv(csv_stream, index=False)
         csv_stream.seek(0)
 
-        # PDF Export
-        html_string = render_template("admin/generate_report.html",form=form, leaves=leaves, month=month)
-        pdf_stream = BytesIO()
-        HTML(string=html_string).write_pdf(pdf_stream)
-        pdf_stream.seek(0)
-
         flash("Reports generated! Download links below.", "success")
         return render_template(
             "admin/generate_report.html",
             form=form,
             leaves=leaves,
-            month=month,
-            csv_stream=csv_stream,
-            pdf_stream=pdf_stream
+            month=month
         )
 
     return render_template("admin/generate_report.html", form=form)
@@ -210,6 +201,12 @@ def download_pdf(month):
     if current_user.role != "Admin":
         flash("Access denied", "danger")
         return redirect(url_for("employee.dashboard"))
+
+    try:
+        from weasyprint import HTML
+    except OSError:
+        flash("PDF export is unavailable on this deployment. Please use CSV export.", "warning")
+        return redirect(url_for("admin.generate_report"))
 
     # Convert month to start and end dates
     start_date = pd.to_datetime(f"{month}-01")

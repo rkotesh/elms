@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, send_file, flash, redirect
 from flask_login import login_required, current_user
 from .utils import generate_report_df
-from weasyprint import HTML
 import io
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/reports")
@@ -24,6 +23,12 @@ def generate():
                 as_attachment=True
             )
         elif report_type == "PDF":
+            try:
+                from weasyprint import HTML
+            except OSError:
+                flash("PDF export is unavailable on this deployment. Please use CSV export.", "warning")
+                return redirect("/reports/generate")
+
             html = render_template("reports/report.html", data=df.to_dict(orient="records"))
             pdf_file = HTML(string=html).write_pdf()
             return send_file(io.BytesIO(pdf_file), mimetype="application/pdf", download_name="leave_report.pdf", as_attachment=True)
