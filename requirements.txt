@@ -1,4 +1,4 @@
-﻿# === Core Flask stack ===
+# === Core Flask stack ===
 Flask
 Flask-Login
 Flask-SQLAlchemy
