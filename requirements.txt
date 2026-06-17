@@ -49,5 +49,3 @@ zopfli
 pandas
 numpy
 
-# === WSGI Server (Render needs this) ===
-psycopg2-binary
