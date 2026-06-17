@@ -5,7 +5,13 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
     # Database
-    db_url = os.environ.get("DATABASE_URL", "sqlite:///instance/elms.db")
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        if os.environ.get("VERCEL"):
+            db_url = "sqlite:////tmp/elms.db"
+        else:
+            db_url = "sqlite:///instance/elms.db"
+
     # Fix Heroku’s postgres:// URI format
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
